@@ -123,8 +123,8 @@ class _BudgetItemsScreenState extends State<BudgetItemsScreen> {
 
     if (confirmed != true) return;
 
+    final svc = SupabaseService.instance;
     try {
-      final svc = SupabaseService.instance;
       if (budget == null) {
         final now = DateTime.now();
         await svc.insertBudget(EventBudget(
@@ -136,6 +136,14 @@ class _BudgetItemsScreenState extends State<BudgetItemsScreen> {
           actualCost: double.parse(actCtrl.text),
           createdAt: now,
         ));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Item anggaran berhasil ditambahkan!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         await svc.updateBudget(budget.copyWith(
           itemName: nameCtrl.text.trim(),
@@ -143,6 +151,14 @@ class _BudgetItemsScreenState extends State<BudgetItemsScreen> {
           estimatedCost: double.parse(estCtrl.text),
           actualCost: double.parse(actCtrl.text),
         ));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Item anggaran berhasil diupdate!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
       _load();
     } catch (e) {
@@ -173,6 +189,14 @@ class _BudgetItemsScreenState extends State<BudgetItemsScreen> {
     if (confirm != true) return;
     try {
       await SupabaseService.instance.deleteBudget(budget.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Item anggaran berhasil dihapus!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
       _load();
     } catch (e) {
       if (mounted) {

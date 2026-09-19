@@ -27,17 +27,30 @@ class SupabaseService {
     final response = await _client.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'name': name,
+        'nim': nim,
+        'role': role,
+      },
     );
 
     final userId = response.user?.id;
-    if (userId == null) throw Exception('Registrasi gagal: user ID tidak ditemukan.');
+    if (userId == null) {
+      throw Exception('Registrasi gagal: user ID tidak ditemukan.');
+    }
 
-    await _client.from(AppConstants.tableProfiles).insert({
-      'id': userId,
-      'name': name,
-      'nim': nim,
-      'role': role,
-    });
+    try {
+      await _client.from(AppConstants.tableProfiles).upsert({
+        'id': userId,
+        'name': name,
+        'nim': nim,
+        'role': role,
+      }, onConflict: 'id');
+    } catch (e) {
+      // Jika upsert gagal (misal karena trigger sudah membuat profil),
+      // tetap izinkan user login. Profil bisa diperbarui nanti.
+      // Ignore error karena AuthGate akan tetap redirect ke MainScaffold.
+    }
   }
 
   Future<void> signIn({

@@ -54,7 +54,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+    _loading = true;
+    setState(() {});
+
     try {
       final svc = SupabaseService.instance;
       final uid = svc.currentUser!.id;
@@ -82,7 +84,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
         );
         await svc.insertEvent(newEvent);
       }
-      if (mounted) Navigator.pop(context, true);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEdit ? 'Kegiatan berhasil diupdate!' : 'Kegiatan berhasil ditambahkan!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +101,10 @@ class _EventFormScreenState extends State<EventFormScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        _loading = false;
+        setState(() {});
+      }
     }
   }
 

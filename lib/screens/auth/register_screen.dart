@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/supabase_service.dart';
+import '../../widgets/main_scaffold.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -31,7 +32,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+    _loading = true;
+    setState(() {});
+
     try {
       await SupabaseService.instance.signUp(
         email: _emailCtrl.text.trim(),
@@ -40,13 +43,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
         nim: _nimCtrl.text.trim(),
         role: _role,
       );
-      // AuthGate akan mendeteksi session baru dan navigasi otomatis
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrasi berhasil!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Auto-navigate ke MainScaffold via AuthGate yang otomatis redirect
+        // Karena email confirmation dinonaktifkan, session langsung aktif
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainScaffold()),
+        );
+      }
     } on AuthException catch (e) {
       if (mounted) _showError(e.message);
     } catch (e) {
       if (mounted) _showError('Terjadi kesalahan: $e');
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        _loading = false;
+        setState(() {});
+      }
     }
   }
 

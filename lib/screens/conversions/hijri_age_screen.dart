@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
+import '../../utils/calendar_helper.dart';
 
 class HijriAgeScreen extends StatefulWidget {
   const HijriAgeScreen({super.key});
@@ -70,14 +70,21 @@ class _HijriConversionTab extends StatefulWidget {
 
 class _HijriConversionTabState extends State<_HijriConversionTab> {
   DateTime _selected = DateTime.now();
-  HijriCalendar? _result;
+  Map<String, dynamic>? _result;
 
   static const _dayNames = [
     '', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _convert();
+  }
+
   void _convert() {
-    setState(() => _result = HijriCalendar.fromDate(_selected));
+    _result = CalendarHelper.convertToHijri(_selected);
+    setState(() {});
   }
 
   Future<void> _pickDate() async {
@@ -123,20 +130,20 @@ class _HijriConversionTabState extends State<_HijriConversionTab> {
             icon: const Icon(Icons.swap_horiz),
             label: const Text('Konversi ke Hijriah'),
           ),
-          if (_result != null) ...[
-            const SizedBox(height: 20),
-            _ResultCard(
-              title: 'Hasil Konversi Hijriah',
-              icon: Icons.mosque_outlined,
-              rows: [
-                _Row('Hari', dayName),
-                _Row('Tanggal', '${_result!.hDay}'),
-                _Row('Bulan Hijriah', _result!.getLongMonthName()),
-                _Row('Tahun Hijriah', '${_result!.hYear} H'),
-                _Row('Format Singkat', _result!.toFormat('DD/MM/YYYY')),
-              ],
-            ),
-          ],
+           if (_result != null) ...[
+             const SizedBox(height: 20),
+             _ResultCard(
+               title: 'Hasil Konversi Hijriah',
+               icon: Icons.mosque_outlined,
+               rows: [
+                 _Row('Hari', dayName),
+                 _Row('Tanggal', '${_result!['day']}'),
+                 _Row('Bulan Hijriah', _result!['monthName']),
+                 _Row('Tahun Hijriah', '${_result!['year']} H'),
+                 _Row('Format Singkat', '${_result!['day']}/${_result!['month']}/${_result!['year']}'),
+               ],
+             ),
+           ],
         ],
       ),
     );

@@ -2,15 +2,28 @@ import 'package:flutter/material.dart';
 import '../../core/services/supabase_service.dart';
 import '../../models/team_member.dart';
 
-class MembersScreen extends StatelessWidget {
+class MembersScreen extends StatefulWidget {
   const MembersScreen({super.key});
+
+  @override
+  State<MembersScreen> createState() => _MembersScreenState();
+}
+
+class _MembersScreenState extends State<MembersScreen> {
+  late Future<List<TeamMember>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = SupabaseService.instance.getTeamMembers();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Daftar Anggota'), centerTitle: true),
       body: FutureBuilder<List<TeamMember>>(
-        future: SupabaseService.instance.getTeamMembers(),
+        future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -24,6 +37,12 @@ class MembersScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text('Gagal memuat data: ${snapshot.error}',
                       textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                      onPressed: () => setState(
+                            () => _future = SupabaseService.instance.getTeamMembers(),
+                          ),
+                      child: const Text('Coba Lagi')),
                 ],
               ),
             );
@@ -41,11 +60,17 @@ class MembersScreen extends StatelessWidget {
               ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            itemCount: members.length,
-            separatorBuilder: (context, i) => const SizedBox(height: 10),
-            itemBuilder: (context, i) => _MemberCard(member: members[i]),
+          return RefreshIndicator(
+            onRefresh: () async => setState(
+              () => _future = SupabaseService.instance.getTeamMembers(),
+            ),
+            child: ListView.separated(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              itemCount: members.length,
+              separatorBuilder: (context, i) => const SizedBox(height: 10),
+              itemBuilder: (context, i) => _MemberCard(member: members[i]),
+            ),
           );
         },
       ),
@@ -85,15 +110,7 @@ class _MemberCard extends StatelessWidget {
         ),
         title: Text(member.name,
             style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('NIM: ${member.nim}'),
-            Text(member.roleInApp,
-                style: TextStyle(color: scheme.primary, fontSize: 12)),
-          ],
-        ),
-        isThreeLine: true,
+        subtitle: Text('NIM: ${member.nim}'),
       ),
     );
   }

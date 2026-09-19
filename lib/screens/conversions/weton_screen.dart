@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../utils/calendar_helper.dart';
 
 class WetonScreen extends StatefulWidget {
   const WetonScreen({super.key});
@@ -28,13 +29,13 @@ class _WetonScreenState extends State<WetonScreen> {
   }
 
   void _calculate() {
-    setState(() => _result = _WetonResult.from(_selected));
+    _result = _WetonResult.from(_selected);
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateLabel =
-        DateFormat('dd MMMM yyyy', 'id_ID').format(_selected);
+    final dateLabel = DateFormat('dd MMMM yyyy', 'id_ID').format(_selected);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,8 +77,6 @@ class _WetonScreenState extends State<WetonScreen> {
   }
 }
 
-// ── Algoritma ──────────────────────────────────────────────────────────────
-
 class _WetonResult {
   final String hariNasional;
   final int neptWHari;
@@ -101,75 +100,29 @@ class _WetonResult {
 
   factory _WetonResult.from(DateTime date) {
     // ── Weton Jawa ──────────────────────────────────────────────────────────
-    const namaHari = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
-    ];
-    const neptHari = [4, 3, 7, 8, 6, 9, 5]; // index sesuai weekday 1–7
-
-    const namaPasaran = ['Legi', 'Pahing', 'Pon', 'Wage', 'Kliwon'];
-    const neptPasaran = [5, 9, 7, 4, 8];
-
-    // Epoch: Sabtu 1 Jan 2000 = Kliwon (index 4 dari namaPasaran)
-    // Julian day number digunakan agar akurat lintas abad.
-    final epochPasaran = DateTime(2000, 1, 1); // Kliwon → index 4
-    const epochPasaranIndex = 4;
-    final diffDays = date.difference(epochPasaran).inDays;
-    final pasaranIndex =
-        ((diffDays % 5) + epochPasaranIndex + 5 * 10) % 5;
-
-    final hariIdx = date.weekday - 1; // weekday: Mon=1 → idx 0
-    final hariNasional = namaHari[hariIdx];
-    final nHari = neptHari[hariIdx];
-    final hariPasaran = namaPasaran[pasaranIndex];
-    final nPasaran = neptPasaran[pasaranIndex];
+    final weton = CalendarHelper.convertToWeton(date);
+    final hariNasional = weton['hari'] as String;
+    final neptWHari = weton['neptuHari'] as int;
+    final hariPasaran = weton['pasaran'] as String;
+    final neptWPasaran = weton['neptuPasaran'] as int;
 
     // ── Saka Bali ───────────────────────────────────────────────────────────
-    // Tahun Saka: Masehi - 78; kurangi 1 jika sebelum 22 Maret (awal tahun Saka)
-    int tahunSaka = date.year - 78;
-    if (date.month < 3 || (date.month == 3 && date.day < 22)) {
-      tahunSaka--;
-    }
-
-    // Sasih (bulan Saka Bali): bulan 1 Sasih ≈ bulan 3 Masehi (Maret)
-    // sasihIndex 0 = Kasa (Juli–Agst), urutan mengikuti kalender Bali umum
-    const namaSasihList = [
-      'Kasa', 'Karo', 'Katiga', 'Kapat', 'Kalima',
-      'Kanem', 'Kapitu', 'Kawolu', 'Kasanga', 'Kadasa',
-      'Jyestha', 'Saddha',
-    ];
-    // Bulan Masehi 7 (Juli) ≈ Sasih Kasa (0), offset = (bulan - 7 + 12) % 12
-    final sasihIndex = (date.month - 7 + 12) % 12;
-    final namaSasih = namaSasihList[sasihIndex];
-
-    // Wuku: siklus 210 hari (30 wuku × 7 hari)
-    // Epoch referensi: 6 Jan 2019 = awal Wuku Sinta (wuku ke-1, index 0)
-    const namaWukuList = [
-      'Sinta', 'Landep', 'Ukir', 'Kulantir', 'Tolu',
-      'Gumbreg', 'Wariga', 'Warigadean', 'Julungwangi', 'Sungsang',
-      'Dungulan', 'Kuningan', 'Langkir', 'Medangsia', 'Pujut',
-      'Pahang', 'Krulut', 'Merakih', 'Tambir', 'Medangkungan',
-      'Matal', 'Uye', 'Menail', 'Prangbakat', 'Bala',
-      'Ugu', 'Wayang', 'Kelawu', 'Dukut', 'Watugunung',
-    ];
-    final epochWuku = DateTime(2019, 1, 6);
-    final diffWuku = date.difference(epochWuku).inDays;
-    final wukuIndex = ((diffWuku % 210) + 210 * 100) % 210 ~/ 7;
-    final namaWuku = namaWukuList[wukuIndex % 30];
+    final tahunSaka = CalendarHelper.convertToSakaYear(date);
+    final namaSasih = CalendarHelper.convertToSasih(date);
+    final namaWuku = CalendarHelper.convertToWuku(date);
 
     return _WetonResult(
       hariNasional: hariNasional,
-      neptWHari: nHari,
+      neptWHari: neptWHari,
       hariPasaran: hariPasaran,
-      neptWPasaran: nPasaran,
-      totalNeptu: nHari + nPasaran,
+      neptWPasaran: neptWPasaran,
+      totalNeptu: neptWHari + neptWPasaran,
       tahunSaka: tahunSaka,
       namaSasih: namaSasih,
       namaWuku: namaWuku,
     );
   }
 }
-
-// ── Result Cards ───────────────────────────────────────────────────────────
 
 class _WetonCard extends StatelessWidget {
   const _WetonCard({required this.result});

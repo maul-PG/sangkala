@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+DOCS_BACKEND.md
+SETUP_ENV.md
+TASK_TRACKING.md

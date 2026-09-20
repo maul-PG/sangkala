@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../core/services/supabase_service.dart';
 import 'register_screen.dart';
 
@@ -42,9 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   @override
@@ -59,22 +60,24 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.event_note, size: 72, color: Colors.indigo),
-                  const SizedBox(height: 16),
+                  Image.asset(
+                    'assets/images/logo.png', // sesuaikan nama file gambarmu
+                    height: 120,
+                    width: 120,
+                  ),
                   Text(
                     'Sangkala',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo,
+                    ),
                   ),
                   Text(
                     'SI-EVENT',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: Colors.grey),
                   ),
                   const SizedBox(height: 40),
                   TextFormField(
@@ -98,12 +101,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
-                            _obscure ? Icons.visibility_off : Icons.visibility),
+                          _obscure ? Icons.visibility_off : Icons.visibility,
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Password wajib diisi' : null,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? 'Password wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -120,8 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const RegisterScreen()),
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     ),
                     child: const Text('Belum punya akun? Daftar'),
                   ),
